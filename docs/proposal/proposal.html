@@ -75,8 +75,7 @@ code { font-family:Menlo,Consolas,monospace; font-size:9.3pt; background:#f1f4f8
     <tr><td class="k">팀명</td><td>AI특별시</td></tr>
     <tr><td class="k">대표 GitHub</td><td><code>https://github.com/ai-specialtime/jeju-jangsa-map</code></td></tr>
     <tr><td class="k">공개 데모</td><td><code>https://jeju-jangsa-map.streamlit.app</code> (시연용, 가상 데이터)</td></tr>
-    <tr><td class="k">문서 상태</td><td>초안 (2026-10-30 작성)</td></tr>
-    <tr><td class="k">제출 예정일</td><td>2026년 11월</td></tr>
+    <tr><td class="k">제출일</td><td>2026년 11월</td></tr>
     <tr><td class="k">제출 대상</td><td>제주빅데이터센터 · 제주테크노파크</td></tr>
   </table>
   <table class="toc">
@@ -100,14 +99,14 @@ code { font-family:Menlo,Consolas,monospace; font-size:9.3pt; background:#f1f4f8
   <table>
     <tr><td class="k">문제</td><td>제주에서 가게를 내려는 사람은 동네별 매출·유동인구·경쟁·폐업 자료를 한 번에 보기 어렵다. 센터에는 표가 73종 있으나, 어떤 표를 어떤 조건으로 받아 어떻게 묶는지는 비전문가가 알기 어렵다. 반출 불가 데이터는 외부 LLM으로 보낼 수도 없다.</td></tr>
     <tr><td class="k">해결</td><td>질문 한 문장을 쓰면 <b>계획 에이전트</b>가 필요한 표와 "센터에서 받아 올 CSV 체크리스트"를 안내하고 분석 SQL을 정한다. 로컬 도구(DuckDB)가 계산하고, <b>반출 기준 검사기(export_gate)</b>를 통과한 집계만 <b>해설 에이전트</b>가 쉬운 문장·근거표 번호·한계로 풀어 준다. 1장 보고서와 분석 기록이 함께 나온다.</td></tr>
-    <tr><td class="k">현황</td><td>1차 동작본 구현·자동 테스트 86개 통과(가상 데이터 + 공개 실데이터). 센터의 실제 CSV로는 아직 돌려 보지 못했다(센터 방문 전).</td></tr>
+    <tr><td class="k">현황</td><td>1차 동작본 구현·자동 테스트 92개 통과(가상 데이터 + 공개 실데이터; 저장소만 받은 깨끗한 환경에서는 87개 통과·5개 건너뜀). 센터의 실제 CSV로는 아직 돌려 보지 못했다(센터 방문 전).</td></tr>
   </table>
 
   <h2>차별점 3줄</h2>
   <div class="three">
     <div class="row"><div class="n">1</div><div class="t"><b>반출 기준을 코드로 구현했다.</b> 2026.09.01 개정 기준에 따라 원본·10 미만 수치는 LLM·보고서로 나가지 않고, 엄격 모드가 기본이다(<code>export_gate</code>).</div></div>
     <div class="row"><div class="n">2</div><div class="t"><b>키 없이 끝까지 도는 오프라인 모드가 기본이다.</b> 센터 비용 0원·외부 전송 0건·같은 질문은 같은 결과. 필요하면 OpenAI·Claude·Gemini 3사 중 선택한다.</div></div>
-    <div class="row"><div class="n">3</div><div class="t"><b>도민이 쓰는 화면과 재현 가능한 기록을 함께 만든다.</b> 예시 질문, CSV 체크리스트, 쉬운 문장+근거표+한계, 1장 보고서, 분석 기록(SQL·파일·행 수·gate 결과·비용), 테스트 76개.</div></div>
+    <div class="row"><div class="n">3</div><div class="t"><b>도민이 쓰는 화면과 재현 가능한 기록을 함께 만든다.</b> 예시 질문, CSV 체크리스트, 쉬운 문장+근거표+한계, 1장 보고서, 분석 기록(SQL·파일·행 수·gate 결과·비용), 테스트 92개.</div></div>
   </div>
 
   <h2>심사 항목 대응표</h2>
@@ -116,7 +115,7 @@ code { font-family:Menlo,Consolas,monospace; font-size:9.3pt; background:#f1f4f8
     <tr><td>필수 데이터 활용 적절성 (20)</td><td>센터 표 7종(카드 3·매장 수·유동인구·휴폐업·날씨)의 열 명세를 코드에 반영하고, 공개 실데이터 5개 표를 결합한다. 반출 가능 여부별로 쓰임을 구분한다. 이용조건의 불일치·미확인은 그대로 밝힌다.</td><td>4</td></tr>
     <tr><td>AI Agent 기술성 및 완성도 (25)</td><td>계획 → 도구 실행 → 반출 검사 → 해설의 다단계 구조, 도구 5종, SQL 안전 검사 7겹, 실패 시 재시도 2회와 템플릿 대체, 해설 숫자 검증.</td><td>3</td></tr>
     <tr><td>편의성 및 실용성 (25)</td><td>예시 질문 버튼 6개, 받아 올 CSV 체크리스트, CSV 열 자동 맞춤(CP949·UTF-8), 쉬운 문장+근거표+한계, 1장 보고서, 올린 자료 일괄 삭제, <code>install.bat</code>→<code>run.bat</code> 두 번 클릭.</td><td>2, 5</td></tr>
-    <tr><td>결과 신뢰성 및 재현성 (15)</td><td>모든 문장에 근거표 번호, 한계 문장, 가상/실데이터 표시, 분석 기록, 고정 시드·고정 버전, 생성 SQL 저장, 자동 테스트 86개. 못 한 검증은 6장에 적는다.</td><td>5, 6</td></tr>
+    <tr><td>결과 신뢰성 및 재현성 (15)</td><td>모든 문장에 근거표 번호, 한계 문장, 가상/실데이터 표시, 분석 기록, 고정 시드·고정 버전, 생성 SQL 저장, 자동 테스트 92개. 못 한 검증은 6장에 적는다.</td><td>5, 6</td></tr>
   </table>
 </section>
 
@@ -133,8 +132,8 @@ code { font-family:Menlo,Consolas,monospace; font-size:9.3pt; background:#f1f4f8
       <td><code>app.py</code><br><code>docs/manual.md</code></td></tr>
     <tr><td>④</td><td><b>분석 기록으로 재현.</b> 실행한 SQL, 사용 파일, 행 수, gate 결과, LLM 호출 수·토큰·예상 비용을 화면과 파일(<code>runs/*.json</code>)에 남긴다. 기록에는 데이터 값이 없다. LLM이 만든 SQL은 저장해 같은 질문이 같은 SQL로 재현된다. 전송 직전 "LLM에 보내는 내용 미리보기"로 실제 전송문을 본다.</td>
       <td><code>jangsa/runlog.py</code><br>화면 "⑤ 분석 기록"</td></tr>
-    <tr><td>⑤</td><td><b>테스트 76개.</b> 반출 검사(9), SQL 안전(25), CSV 맞춤(8), LLM 공급자·대체 동작(12), 공개 데이터(3), 가상 데이터 재현(6), 오프라인 끝-끝(13). 가상 데이터 파일이 실행마다 바이트 단위로 같다.</td>
-      <td><code>tests/</code><br><code>pytest tests -q</code> → 76 passed</td></tr>
+    <tr><td>⑤</td><td><b>테스트 92개.</b> 반출 검사(9), SQL 안전(25), CSV 맞춤(8), LLM 공급자·대체 동작(12), 공개 데이터(6), 공개 파일 받기(10), 가상 데이터 재현(6), 오프라인 끝-끝(16). 가상 데이터 파일이 실행마다 바이트 단위로 같다.</td>
+      <td><code>tests/</code><br><code>pytest tests -q</code> → 92 passed</td></tr>
   </table>
 
 </section>
@@ -442,7 +441,7 @@ code { font-family:Menlo,Consolas,monospace; font-size:9.3pt; background:#f1f4f8
     <tr><td>csv·txt·엑셀 반출 원칙 불가</td><td>원본 불가 표 결과는 PNG·보고서만. CSV 저장 버튼은 반출 가능 표·공개 실데이터 결과에만</td></tr>
     <tr><td>소스코드·로그에 데이터 샘플 출력 금지</td><td>분석 기록에는 SQL·행 수·판정만 저장</td></tr>
   </table>
-  <p class="small">여기서 구현한 해석은 센터 담당자 확인 전의 초안이다. 센터가 다르게 해석하면 <code>config/export_rules.yaml</code>만 바꾼다.</p>
+  <p class="small">여기서 구현한 해석은 센터 담당자 확인 전의 해석이다. 센터가 다르게 해석하면 <code>config/export_rules.yaml</code>만 바꾼다.</p>
 
   <h2>4.6 출처 표기</h2>
   <div class="box navy small">본 자료는 제주빅데이터센터에서 제공하는 자료를 활용한 것이며, 연구결과는 제주특별자치도 및 제주테크노파크와 관련이 없음을 밝힙니다.</div>
@@ -456,8 +455,8 @@ code { font-family:Menlo,Consolas,monospace; font-size:9.3pt; background:#f1f4f8
 
   <h2>5.1 구현 범위</h2>
   <table><thead><tr><th style="width:38mm">구분</th><th>내용</th></tr></thead>
-    <tr><td class="k">구현 완료(1차 동작본)</td><td>질문 유형 5종, 도구 5종, 계획·해설 에이전트(오프라인·LLM 3사), 센터 표 7종(+이용자 집계 1·내 가게 CSV)·공개 실데이터 5표 연결, 반출 검사 엄격 모드, Streamlit 화면, 보고서(HTML), 분석 기록, 설치·실행 스크립트, 매뉴얼, 테스트 76개</td></tr>
-    <tr><td class="k">제출 전 할 일</td><td>센터 실제 CSV 형식 대조, Windows 11 실기 설치 점검, 평가용 질문 정답 대조(직접 SQL과 비교), LLM 모드 실제 호출 시험, 아래 6장 확인 사항 정리</td></tr>
+    <tr><td class="k">구현 완료(1차 동작본)</td><td>질문 유형 5종, 도구 5종, 계획·해설 에이전트(오프라인·LLM 3사), 센터 표 7종(+이용자 집계 1·내 가게 CSV)·공개 실데이터 5표 연결, 반출 검사 엄격 모드, Streamlit 화면, 보고서(HTML), 분석 기록, 설치·실행 스크립트, 매뉴얼, 테스트 92개</td></tr>
+    <tr><td class="k">남은 일</td><td>센터 실제 CSV 형식 대조, Windows 11 실기 설치 점검, 평가용 질문 정답 대조(직접 SQL과 비교), LLM 모드 실제 호출 시험, 아래 6장 확인 사항 정리</td></tr>
     <tr><td class="k">확장 계획(현재 없음)</td><td>외식업 POS·단기체류 외국인 유동인구 표 추가, 일별 날씨·버스 이용 실데이터 연결, 로컬 소형 LLM(Ollama), 센터 표 카탈로그 기반 "처음 온 이용자용 데이터 찾기"</td></tr>
   </table>
 
@@ -521,12 +520,12 @@ code { font-family:Menlo,Consolas,monospace; font-size:9.3pt; background:#f1f4f8
 
   <h2>6.1 수행한 검증</h2>
   <table><thead><tr><th style="width:38mm">검증</th><th>내용</th></tr></thead>
-    <tr><td class="k">자동 테스트 76개</td><td>반출 검사 9(10 미만 삭제·범주·비식별, 임계값 변경, 엄격 모드, 원본 행·식별 열 차단, 반출 가능 표 예외) · SQL 안전 25(쓰기·파일 읽기·확장 거부, LIMIT 강제, 연결의 파일 접근 차단) · CSV 맞춤 8(인코딩, 별칭, 기업 원본 거절, 빈 파일) · LLM 12(요청 형식 3사, 키 없음, 전송문에 데이터 값 없음, SQL 2회 재시도 후 템플릿 대체, 안전하지 않은 SQL 미실행, 지어낸 숫자 해설 대체) · 공개 데이터 6(도민 유동인구 값이 0이 되지 않는 회귀 테스트, 빈 폴더) · 가상 데이터 6(같은 시드=같은 파일) · 오프라인 끝-끝 16(예시 질문, 보고서의 출처 문구·PNG·단순집계 열 없음, 공개 파일이 없을 때 "파일 없음 — 받는 법" 안내로 건너뜀)</td></tr>
+    <tr><td class="k">자동 테스트 92개</td><td>반출 검사 9(10 미만 삭제·범주·비식별, 임계값 변경, 엄격 모드, 원본 행·식별 열 차단, 반출 가능 표 예외) · SQL 안전 25(쓰기·파일 읽기·확장 거부, LIMIT 강제, 연결의 파일 접근 차단) · CSV 맞춤 8(인코딩, 별칭, 기업 원본 거절, 빈 파일) · LLM 12(요청 형식 3사, 키 없음, 전송문에 데이터 값 없음, SQL 2회 재시도 후 템플릿 대체, 안전하지 않은 SQL 미실행, 지어낸 숫자 해설 대체) · 공개 데이터 6(도민 유동인구 값이 0이 되지 않는 회귀 테스트, 빈 폴더) · 공개 파일 받기 10(직접 받기, 재시도, 번호 변경 대체 경로, CSV 아닌 응답 거부, 실패 사유 보존) · 가상 데이터 6(같은 시드=같은 파일) · 오프라인 끝-끝 16(예시 질문, 보고서의 출처 문구·PNG·단순집계 열 없음, 공개 파일이 없을 때 "파일 없음 — 받는 법" 안내로 건너뜀) — 저장소·zip만 받은 깨끗한 환경에서는 받아야 하는 공개 파일이 필요한 5개를 건너뛰고 87개 통과</td></tr>
     <tr><td class="k">결과의 근거 표시</td><td>모든 요약 문장에 근거표 번호, 한계 문장, 가상/실데이터 딱지, 소수 칸 "비공개"</td></tr>
     <tr><td class="k">재현</td><td>고정 시드·고정 버전, 오프라인 모드는 같은 질문에 같은 결과, LLM 모드는 생성 SQL 저장, 분석 기록 파일</td></tr>
   </table>
 
-  <h2>6.2 하지 못한 검증 (제출 전 수행 예정)</h2>
+  <h2>6.2 하지 못한 검증</h2>
   <ul>
     <li><b>센터의 실제 CSV로 실행</b>: 열 이름은 명세서로 맞췄으나 실제 파일로는 못 돌렸다. 다르면 <code>config/tables.yaml</code>의 별칭 한 곳에서 고친다.</li>
     <li><b>Windows 11 실기 설치</b>: 설치·실행은 macOS에서 확인했다. <code>install.bat</code>·<code>run.bat</code>은 작성했지만 Windows에서 돌려 보지 못했다.</li>
@@ -570,7 +569,7 @@ code { font-family:Menlo,Consolas,monospace; font-size:9.3pt; background:#f1f4f8
   <h2>7.1 사용 AI 모델</h2>
   <table><thead><tr><th style="width:38mm">구분</th><th>내용</th></tr></thead>
     <tr><td class="k">앱 실행 중(런타임)</td><td>오프라인 모드(기본): AI 모델 없음. LLM 모드(선택): <code>gpt-4o-mini</code>(OpenAI), <code>claude-haiku-4-5</code>(Anthropic), <code>gemini-2.5-flash</code>(Google) 중 이용자가 고른 하나. 모델 이름은 화면에서 바꿀 수 있다.</td></tr>
-    <tr><td class="k">개발 과정</td><td>코드·문서 초안 작성에 생성형 AI 코딩 도구를 사용했다(저장소 커밋 기록에 공동 작성자 Claude Sonnet 5.5 표기). 구현 범위와 사실은 저장소 파일과 테스트로 확인한다. <b>[팀 확인 후 도구·모델 표기 확정]</b></td></tr>
+    <tr><td class="k">개발 과정</td><td>코드·문서 작성에 Anthropic의 코딩 도구 Claude Code를 사용했다(저장소 커밋 기록의 공동 작성자 표기: Claude Opus 5.5, Claude Sonnet 5.5). 앱 실행에는 쓰지 않는다. 구현 범위와 사실은 저장소 파일과 자동 테스트로 확인한다.</td></tr>
   </table>
 
   <h2>7.2 AI 활용 범위</h2>
