@@ -3,8 +3,8 @@
 gatherUsageStats = false
 
 [server]
-# run.bat / run.sh 가 센터 PC 에서만 브라우저를 열어 준다(Cloud 는 알아서 headless 로 돈다)
-headless = false
+# 기본은 headless(Cloud 데모가 이메일 입력 대기로 멈추지 않게). 센터 PC 는 run.bat / run.sh 가 --server.headless false 로 브라우저를 연다.
+headless = true
 fileWatcherType = "none"
 # 데모(메모리 1GB)를 지키려고 기본 50MB. 센터 PC 는 run.bat / run.sh 가 --server.maxUploadSize 200 으로 넓힌다.
 maxUploadSize = 50
