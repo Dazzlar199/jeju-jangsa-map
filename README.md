@@ -23,7 +23,7 @@
 
 - Python 3.11. 직접 설치하는 패키지는 `requirements.txt`(고정 버전) **8개**(streamlit, duckdb, pandas, numpy, plotly, PyYAML, pydantic, matplotlib)입니다. 이 8개가 끌고 오는 의존 패키지까지 모두 고정한 **전체 47개 목록은 [requirements-lock.txt](requirements-lock.txt)**(깨끗한 환경에서 뽑음), 패키지별 라이선스는 [docs/data-usage.md](docs/data-usage.md) 6절입니다. torch·Docker·WSL 은 쓰지 않습니다.
 - 가상 데이터 CSV 는 저장소에 넣지 않고 설치 때(또는 앱을 처음 열 때, 없으면 자동으로) `scripts/make_synthetic.py`(고정 시드, 약 3초, 33MB)로 만듭니다.
-- 테스트: `.venv/bin/python -m pytest tests -q` (Windows: `.venv\Scripts\python -m pytest tests -q`) → 86개 통과(저장소만 받은 환경에서는 받아야 하는 공개 파일이 필요한 2개를 건너뛰고 84개 통과; 스크린샷: docs/screens/).
+- 테스트: `.venv/bin/python -m pytest tests -q` (Windows: `.venv\Scripts\python -m pytest tests -q`) → 92개 통과(저장소만 받은 환경에서는 받아야 하는 공개 파일이 필요한 5개를 건너뛰고 87개 통과; 스크린샷: docs/screens/).
 
 ### 공개 데이터 받기 (선택)
 `data/public/` 에는 이용조건이 "이용허락범위 제한 없음"으로 확인된 파일(제주도민 유동인구, 버스 정류소·노선 등)만 들어 있습니다. 이용조건을 확인하지 못했거나 안내가 어긋나는 **서귀포시 휴게음식점 현황(제주데이터허브 1306)과 BC카드 관광객 지역별 분석(공공데이터포털 15046093)**은 저장소에 없고, 필요하면 원래 공개 주소에서 받습니다(로그인·키 불필요, 받기 전에 출처 페이지의 이용조건을 확인하세요).
