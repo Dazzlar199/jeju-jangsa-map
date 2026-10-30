@@ -73,6 +73,8 @@ code { font-family:Menlo,Consolas,monospace; font-size:9.3pt; background:#f1f4f8
   <div class="sub">— 제주 동네 창업·장사 진단 AI Agent<br><span style="font-size:11.5pt;color:var(--mute)">센터 PC에서 키 없이 돌고, 반출 기준을 코드로 지키는 분석 도우미</span></div>
   <table class="meta">
     <tr><td class="k">팀명</td><td>AI특별시</td></tr>
+    <tr><td class="k">대표 GitHub</td><td><code>https://github.com/ai-specialtime/jeju-jangsa-map</code></td></tr>
+    <tr><td class="k">공개 데모</td><td><code>https://jeju-jangsa-map.streamlit.app</code> (시연용, 가상 데이터)</td></tr>
     <tr><td class="k">문서 상태</td><td>초안 (2026-10-30 작성)</td></tr>
     <tr><td class="k">제출 예정일</td><td>2026년 11월</td></tr>
     <tr><td class="k">제출 대상</td><td>제주빅데이터센터 · 제주테크노파크</td></tr>
@@ -98,7 +100,7 @@ code { font-family:Menlo,Consolas,monospace; font-size:9.3pt; background:#f1f4f8
   <table>
     <tr><td class="k">문제</td><td>제주에서 가게를 내려는 사람은 동네별 매출·유동인구·경쟁·폐업 자료를 한 번에 보기 어렵다. 센터에는 표가 73종 있으나, 어떤 표를 어떤 조건으로 받아 어떻게 묶는지는 비전문가가 알기 어렵다. 반출 불가 데이터는 외부 LLM으로 보낼 수도 없다.</td></tr>
     <tr><td class="k">해결</td><td>질문 한 문장을 쓰면 <b>계획 에이전트</b>가 필요한 표와 "센터에서 받아 올 CSV 체크리스트"를 안내하고 분석 SQL을 정한다. 로컬 도구(DuckDB)가 계산하고, <b>반출 기준 검사기(export_gate)</b>를 통과한 집계만 <b>해설 에이전트</b>가 쉬운 문장·근거표 번호·한계로 풀어 준다. 1장 보고서와 분석 기록이 함께 나온다.</td></tr>
-    <tr><td class="k">현황</td><td>1차 동작본 구현·자동 테스트 82개 통과(가상 데이터 + 공개 실데이터). 센터의 실제 CSV로는 아직 돌려 보지 못했다(센터 방문 전).</td></tr>
+    <tr><td class="k">현황</td><td>1차 동작본 구현·자동 테스트 86개 통과(가상 데이터 + 공개 실데이터). 센터의 실제 CSV로는 아직 돌려 보지 못했다(센터 방문 전).</td></tr>
   </table>
 
   <h2>차별점 3줄</h2>
@@ -114,7 +116,7 @@ code { font-family:Menlo,Consolas,monospace; font-size:9.3pt; background:#f1f4f8
     <tr><td>필수 데이터 활용 적절성 (20)</td><td>센터 표 7종(카드 3·매장 수·유동인구·휴폐업·날씨)의 열 명세를 코드에 반영하고, 공개 실데이터 5개 표를 결합한다. 반출 가능 여부별로 쓰임을 구분한다. 이용조건의 불일치·미확인은 그대로 밝힌다.</td><td>4</td></tr>
     <tr><td>AI Agent 기술성 및 완성도 (25)</td><td>계획 → 도구 실행 → 반출 검사 → 해설의 다단계 구조, 도구 5종, SQL 안전 검사 7겹, 실패 시 재시도 2회와 템플릿 대체, 해설 숫자 검증.</td><td>3</td></tr>
     <tr><td>편의성 및 실용성 (25)</td><td>예시 질문 버튼 6개, 받아 올 CSV 체크리스트, CSV 열 자동 맞춤(CP949·UTF-8), 쉬운 문장+근거표+한계, 1장 보고서, 올린 자료 일괄 삭제, <code>install.bat</code>→<code>run.bat</code> 두 번 클릭.</td><td>2, 5</td></tr>
-    <tr><td>결과 신뢰성 및 재현성 (15)</td><td>모든 문장에 근거표 번호, 한계 문장, 가상/실데이터 표시, 분석 기록, 고정 시드·고정 버전, 생성 SQL 저장, 자동 테스트 82개. 못 한 검증은 6장에 적는다.</td><td>5, 6</td></tr>
+    <tr><td>결과 신뢰성 및 재현성 (15)</td><td>모든 문장에 근거표 번호, 한계 문장, 가상/실데이터 표시, 분석 기록, 고정 시드·고정 버전, 생성 SQL 저장, 자동 테스트 86개. 못 한 검증은 6장에 적는다.</td><td>5, 6</td></tr>
   </table>
 </section>
 
@@ -404,7 +406,7 @@ code { font-family:Menlo,Consolas,monospace; font-size:9.3pt; background:#f1f4f8
   <p class="note">* 단순집계는 "10 미만 수치 불포함 시" 반출 가능. 문서 4쪽과 10쪽의 해석이 달라 엄격 모드를 기본으로 했다(6장). 카드 표 업종코드: 카페 I56220, 한식 I56111, 중식 I56112, 일식 I56113, 양식 I56114, 간이음식 I56192, 주점 I56211+I56219, 편의점 G47122, 베이커리 G47215. 시간대는 카드 표 기준 5구간이며 외식 POS 7구간과 직접 비교하지 않는다. 카드 표는 법정동, 유동인구는 행정동이라 대응표(<code>config/tables.yaml</code>, 확실한 것만 넣은 초안)로 맞추고 못 맞춘 동은 경고 후 뺀다. 외식업 POS(1-19~1-29)·단기체류 외국인 유동인구(4-15)는 쓰지 않는다(확장 계획).</p>
 
   <h2>4.2 공개 실데이터와 이용조건</h2>
-  <p class="small">제주데이터허브·공공데이터포털에서 로그인 없이 받은 공개 파일이다(<code>data/public/</code>). 저장소(공개 GitHub)에는 이용조건이 "이용허락범위 제한 없음"으로 확인된 파일만 두고, 확인 못 했거나 안내가 어긋나는 2종(아래 앞 두 줄)은 <code>scripts/fetch_public_data.py</code>로 원래 공개 주소에서 받는다(파일이 없으면 그 [실데이터] 단계만 "파일 없음 — 받는 법" 안내로 건너뛰고 나머지는 그대로 돈다). 제출 zip에는 운영진 답변(2026-10-30)에 따라 공개 원본을 포함할 수 있다. 앱에서는 [실데이터] 표시를 붙이고 가상 데이터와 섞어 하나의 값으로 계산하지 않는다.</p>
+  <p class="small">제주데이터허브·공공데이터포털에서 로그인 없이 받은 공개 파일이다(<code>data/public/</code>). 저장소(공개 GitHub <code>ai-specialtime/jeju-jangsa-map</code>)에는 이용조건이 "이용허락범위 제한 없음"으로 확인된 파일만 두고, 확인 못 했거나 안내가 어긋나는 2종(아래 앞 두 줄)은 <code>scripts/fetch_public_data.py</code>로 원래 공개 주소에서 받는다(파일이 없으면 그 [실데이터] 단계만 "파일 없음 — 받는 법" 안내로 건너뛰고 나머지는 그대로 돈다). 제출 zip에는 운영진 답변(2026-10-30)에 따라 공개 원본을 포함할 수 있다. 앱에서는 [실데이터] 표시를 붙이고 가상 데이터와 섞어 하나의 값으로 계산하지 않는다.</p>
   <table class="pk"><thead><tr><th style="width:21mm">앱 표</th><th style="width:48mm">파일 · 출처</th><th style="width:40mm">이용조건 (조사 원문)</th><th>쓰임 · 한계</th></tr></thead>
     <tr><td><code>cafe_license</code></td><td>제주특별자치도_서귀포시_휴게음식점현황_20230331.csv (1,441행) · 제주데이터허브 id 1306</td><td><b>확인 못 함</b>(허브에 표기 없음, data.go.kr 링크 404) → 저장소 제외, 받기 스크립트</td><td>서귀포시 읍면동별 카페·베이커리·간이음식 신고 업소 수. 업소명으로 분류, 주소의 읍면동으로 지역 판정(주소 판정 1,206곳, 집계 302곳). 서귀동 등 일부는 못 정해 제외</td></tr>
     <tr><td><code>bc_tour_time</code><br><code>bc_tour_dow</code></td><td>제주특별자치도_개별관광(FIT)…BC카드_지역별(지리적구분)_20170216 — CSV 26개 중 시간대별 이용금액·요일별 내국인 이용금액 · 공공데이터포털 15046093</td><td><b>불일치</b>: 페이지는 "공공저작물 자유이용(제0유형)", zip 안 표시는 "공공누리 4유형" → 확인 필요, 저장소 제외·받기 스크립트</td><td>권역(북부·남부·동부·서부)별 관광객 시간대·요일 결제 비중. 2015-09~2016-08, 전 업종 합계</td></tr>
@@ -473,7 +475,7 @@ code { font-family:Menlo,Consolas,monospace; font-size:9.3pt; background:#f1f4f8
     <tr><td>1</td><td class="k"><code>install.bat</code> 더블클릭(처음 한 번)</td><td>[1/3] 가상환경 <code>.venv</code> 생성 → [2/3] <code>requirements.txt</code> 고정 버전 설치 → [3/3] 가상 데이터 생성(고정 시드, 개발 PC에서 약 10초)</td></tr>
     <tr><td>2</td><td class="k"><code>run.bat</code> 더블클릭</td><td>가상환경의 Streamlit으로 <code>app.py</code>를 <code>127.0.0.1</code>에 띄우고 브라우저가 열린다(통계 수집 끔). 검은 창을 닫으면 끝난다.</td></tr>
     <tr><td>3</td><td class="k">사용</td><td>예시 질문 → 이해 확인 → 체크리스트 → 센터 CSV 올리기 → 결과·보고서·분석 기록 → "올린 자료 모두 삭제"</td></tr>
-    <tr><td>4</td><td class="k">공개 데모(선택)</td><td>Streamlit Community Cloud에 같은 <code>app.py</code>를 올린 시연용(Python 3.11). 오프라인 모드가 기본이고 가상 데이터를 첫 실행 때 자동 생성하며, LLM 키는 그 세션의 메모리에만 두고 서버에 저장하지 않는다. 센터 PC 실행과는 별개다.</td></tr>
+    <tr><td>4</td><td class="k">공개 데모(선택)</td><td>Streamlit Community Cloud(<code>https://jeju-jangsa-map.streamlit.app</code>)에 같은 <code>app.py</code>를 올린 시연용(Python 3.11, 소스는 대표 GitHub <code>ai-specialtime/jeju-jangsa-map</code>). 오프라인 모드가 기본이고 가상 데이터를 첫 실행 때 자동 생성하고, 저장소에 없는 공개 파일 2종(휴게음식점·BC카드)은 첫 실행 때 원래 공개 주소에서 받아 쓴다(실패하면 그 [실데이터] 단계만 건너뜀). LLM 키는 그 세션의 메모리에만 두고 서버에 저장하지 않는다. 센터 PC 실행과는 별개다.</td></tr>
   </table>
   <p class="small">매뉴얼은 <code>docs/manual.md</code>(도민용 9개 절). 오류 대응 표 포함.</p>
 </section>

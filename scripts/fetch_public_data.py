@@ -32,9 +32,12 @@ UA = {"User-Agent": "Mozilla/5.0 (jangsa-map fetch_public_data)"}
 CAFE_NAME = "제주특별자치도_서귀포시_휴게음식점현황_20230331.csv"
 BC_DIR = "제주특별자치도_개별관광(FIT)_증가에_따른_제주_관광객_소비패턴_변화_분석_BC카드_지역별(지리적구분)_20170216"
 BC_EXPECT = 26
+TIMEOUT_CAP: int | None = None     # 앱(Cloud 데모)이 요청마다 기다리는 최대 초를 줄일 때 설정한다
 
 
 def _open(opener, url: str, data: dict | None = None, timeout: int = 120) -> bytes:
+    if TIMEOUT_CAP:
+        timeout = min(timeout, TIMEOUT_CAP)
     body = urllib.parse.urlencode(data).encode() if data is not None else None
     req = urllib.request.Request(url, data=body, headers={**UA, "X-Requested-With": "XMLHttpRequest"} if body else UA)
     with opener.open(req, timeout=timeout) as r:

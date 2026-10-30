@@ -50,7 +50,16 @@ st.markdown("""
 
 # ── 상태 ────────────────────────────────────────────────────────────────
 @st.cache_resource(show_spinner=False)
+def _download_public():
+    """Cloud 데모만: 저장소에 없는 공개 파일을 첫 실행 때 받는다(서버가 켜져 있는 동안 한 번). 실패하면 기존 '파일 없음' 안내."""
+    from jangsa.fetch_public import fetch_missing
+    return fetch_missing()
+
+
+@st.cache_resource(show_spinner=False)
 def _base_frames():
+    if DEMO:
+        _download_public()
     return read_synthetic(include_my_store=False), read_public()
 
 
@@ -67,7 +76,8 @@ def _new_store() -> DataStore:
 def S():
     ss = st.session_state
     if "store" not in ss:
-        with st.spinner("가상 데이터와 공개 실데이터를 불러오는 중입니다(처음 한 번만 오래 걸립니다)…"):
+        with st.spinner(("가상 데이터를 만들고 공개 실데이터(휴게음식점·BC카드)를 공개 주소에서 받는 중입니다(처음 한 번만, 받기는 요청마다 20초까지 기다립니다)…"
+                      if DEMO else "가상 데이터와 공개 실데이터를 불러오는 중입니다(처음 한 번만 오래 걸립니다)…")):
             ss.store = _new_store()
         ss.update(question="", plan=None, result=None, log=None, uploaded={}, confirm={}, report_path=None, saved_reports=[], auto_run=False)
     return ss

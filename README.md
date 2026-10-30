@@ -6,7 +6,7 @@
 - 계획 에이전트가 필요한 표와 "센터에서 받아 올 CSV"를 안내하고, 로컬 도구(DuckDB·그래프)가 계산하며, **반출 기준 검사기(export_gate)**를 통과한 집계만 해설 에이전트가 쉬운 말로 풉니다.
 - **키 없이도 끝까지 도는 오프라인 모드가 기본**입니다. OpenAI·Claude·Gemini 는 키를 넣을 때만 선택으로 씁니다.
 
-**데모 링크: (배포 후 추가)** · **센터 PC에서: `install.bat` → `run.bat`** (macOS/Linux: `./install.sh` → `./run.sh`)
+**데모 링크: [jeju-jangsa-map.streamlit.app](https://jeju-jangsa-map.streamlit.app)** · **대표 GitHub: [ai-specialtime/jeju-jangsa-map](https://github.com/ai-specialtime/jeju-jangsa-map)**(팀 AI특별시) · **센터 PC에서: `install.bat` → `run.bat`** (macOS/Linux: `./install.sh` → `./run.sh`)
 
 > 화면의 숫자 대부분은 **가상 데이터**입니다(실제 제주 통계 아님). 공개 실데이터를 쓴 단계에는 `[실데이터]` 표시가 붙습니다. 센터에서 받은 실제 CSV 를 올리면 같은 화면이 실제 분석을 합니다.
 
@@ -23,7 +23,7 @@
 
 - Python 3.11. 직접 설치하는 패키지는 `requirements.txt`(고정 버전) **8개**(streamlit, duckdb, pandas, numpy, plotly, PyYAML, pydantic, matplotlib)입니다. 이 8개가 끌고 오는 의존 패키지까지 모두 고정한 **전체 47개 목록은 [requirements-lock.txt](requirements-lock.txt)**(깨끗한 환경에서 뽑음), 패키지별 라이선스는 [docs/data-usage.md](docs/data-usage.md) 6절입니다. torch·Docker·WSL 은 쓰지 않습니다.
 - 가상 데이터 CSV 는 저장소에 넣지 않고 설치 때(또는 앱을 처음 열 때, 없으면 자동으로) `scripts/make_synthetic.py`(고정 시드, 약 3초, 33MB)로 만듭니다.
-- 테스트: `.venv/bin/python -m pytest tests -q` (Windows: `.venv\Scripts\python -m pytest tests -q`) → 82개 통과(저장소만 받은 환경에서는 받아야 하는 공개 파일이 필요한 2개를 건너뛰고 80개 통과; 스크린샷: docs/screens/).
+- 테스트: `.venv/bin/python -m pytest tests -q` (Windows: `.venv\Scripts\python -m pytest tests -q`) → 86개 통과(저장소만 받은 환경에서는 받아야 하는 공개 파일이 필요한 2개를 건너뛰고 84개 통과; 스크린샷: docs/screens/).
 
 ### 공개 데이터 받기 (선택)
 `data/public/` 에는 이용조건이 "이용허락범위 제한 없음"으로 확인된 파일(제주도민 유동인구, 버스 정류소·노선 등)만 들어 있습니다. 이용조건을 확인하지 못했거나 안내가 어긋나는 **서귀포시 휴게음식점 현황(제주데이터허브 1306)과 BC카드 관광객 지역별 분석(공공데이터포털 15046093)**은 저장소에 없고, 필요하면 원래 공개 주소에서 받습니다(로그인·키 불필요, 받기 전에 출처 페이지의 이용조건을 확인하세요).
@@ -35,7 +35,7 @@ python scripts/fetch_public_data.py           # 없는 것만 받기
 받지 않아도 앱은 돌아갑니다. 그 [실데이터] 단계만 "파일 없음 — 받는 법" 안내로 건너뜁니다.
 
 ### 공개 데모 (Streamlit Community Cloud)
-메인 파일 `app.py`, Python 3.11(`.python-version`, `runtime.txt`), 한글 글꼴은 `packages.txt`(fonts-nanum), 화면 설정은 `.streamlit/config.toml`입니다. 데모는 **오프라인 모드가 기본**이고 가상 데이터를 첫 실행 때 자동으로 만듭니다(메모리는 데이터·분석 부분이 세션 3개 동시에 약 470MB로 1GB 안). LLM 모드의 API 키는 그 브라우저 세션의 메모리에만 있고 서버에 저장하지 않습니다. 공개 데모에는 본인 키를 넣지 마세요. `JANGSA_DEMO=1` 환경변수(Cloud 에서는 자동 인식)이면 이 안내 문구가 더 붙습니다.
+메인 파일 `app.py`, Python 3.11(`.python-version`, `runtime.txt`), 한글 글꼴은 `packages.txt`(fonts-nanum), 화면 설정은 `.streamlit/config.toml`입니다. 데모는 **오프라인 모드가 기본**이고 가상 데이터를 첫 실행 때 자동으로 만듭니다(메모리는 데이터·분석 부분이 세션 3개 동시에 약 470MB로 1GB 안). LLM 모드의 API 키는 그 브라우저 세션의 메모리에만 있고 서버에 저장하지 않습니다. 공개 데모에는 본인 키를 넣지 마세요. `JANGSA_DEMO=1` 환경변수(Cloud 에서는 자동 인식)이면 이 안내 문구가 더 붙고, **저장소에 없는 공개 파일 2종(휴게음식점·BC카드)을 첫 실행 때 원래 공개 주소에서 받아 서버가 켜져 있는 동안 씁니다**(`jangsa/fetch_public.py`, 요청마다 20초까지 기다리고, 받기에 실패하면 그 [실데이터] 단계만 "파일 없음" 안내로 건너뜁니다; 받은 파일은 커밋하지 않습니다). 센터 PC(`run.bat`)에서는 이 자동 받기를 하지 않고 위 '공개 데이터 받기'를 손으로 합니다.
 
 ## 화면 사용법 (자세한 건 [docs/manual.md](docs/manual.md))
 1. 예시 질문 버튼을 누르거나 직접 질문을 씁니다. 예) "애월읍에 카페를 내면 어때?", "노형동 한식집 매출이 동네 평균보다 어때?"
