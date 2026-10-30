@@ -20,6 +20,8 @@ import http.cookiejar
 import io
 import json
 import sys
+import time
+import urllib.error
 import urllib.parse
 import urllib.request
 import zipfile
@@ -30,18 +32,32 @@ OUT_DEFAULT = ROOT / "data" / "public"
 UA = {"User-Agent": "Mozilla/5.0 (jangsa-map fetch_public_data)"}
 
 CAFE_NAME = "제주특별자치도_서귀포시_휴게음식점현황_20230331.csv"
+CAFE_FILE_IDS = (4989, 4079)       # 데이터허브 파일 번호(id, fileId). 메타 조회(272KB JSON)가 막혀도 바로 받을 수 있게 둔다
+CAFE_HEADER = "업종명"             # 받은 내용이 CSV 가 맞는지 보는 첫 열 이름(차단 안내 페이지를 저장하지 않으려고)
+TRIES = 3                          # 네트워크 오류·시간 초과는 몇 번까지 다시 해 볼지
 BC_DIR = "제주특별자치도_개별관광(FIT)_증가에_따른_제주_관광객_소비패턴_변화_분석_BC카드_지역별(지리적구분)_20170216"
 BC_EXPECT = 26
 TIMEOUT_CAP: int | None = None     # 앱(Cloud 데모)이 요청마다 기다리는 최대 초를 줄일 때 설정한다
 
 
-def _open(opener, url: str, data: dict | None = None, timeout: int = 120) -> bytes:
+def _open(opener, url: str, data: dict | None = None, timeout: int = 120, tries: int = 1) -> bytes:
+    """요청 한 번. tries 가 2 이상이면 네트워크 오류·시간 초과에 한해 잠깐 쉬고 다시 한다(HTTP 4xx 는 다시 해도 같아서 바로 실패)."""
     if TIMEOUT_CAP:
         timeout = min(timeout, TIMEOUT_CAP)
     body = urllib.parse.urlencode(data).encode() if data is not None else None
     req = urllib.request.Request(url, data=body, headers={**UA, "X-Requested-With": "XMLHttpRequest"} if body else UA)
-    with opener.open(req, timeout=timeout) as r:
-        return r.read()
+    for i in range(tries):
+        try:
+            with opener.open(req, timeout=timeout) as r:
+                return r.read()
+        except urllib.error.HTTPError as e:
+            if e.code < 500 or i == tries - 1:
+                raise
+        except OSError:                 # URLError·시간 초과·연결 끊김
+            if i == tries - 1:
+                raise
+        time.sleep(1.5 * (i + 1))
+    raise RuntimeError("unreachable")
 
 
 def have_cafe(out: Path) -> bool:
@@ -53,11 +69,29 @@ def have_bc(out: Path) -> bool:
     return d.is_dir() and len(list(d.glob("*.csv"))) >= BC_EXPECT
 
 
+def _cafe_bytes(op, file_id: int, fid: int) -> bytes:
+    raw = _open(op, f"https://jejudatahub.net/api/file?id={file_id}&fileId={fid}", tries=TRIES)
+    head = raw[:2000].decode("utf-8-sig", "replace")
+    first = head.splitlines()[0] if head.strip() else ""
+    if CAFE_HEADER not in first:
+        raise RuntimeError(f"CSV 가 아닌 응답을 받았습니다({len(raw):,} bytes, 시작: {head[:60]!r})")
+    return raw
+
+
 def fetch_cafe(out: Path) -> str:
+    """파일 번호를 알고 있으면 바로 받고(요청 1번), 번호가 바뀌었거나 실패하면 상세 조회로 번호를 다시 찾는다. 둘 다 실패하면 두 사유를 함께 알린다."""
     op = urllib.request.build_opener()
-    meta = json.loads(_open(op, "https://jejudatahub.net/api/data/view?id=1306"))
-    fi = next(f for f in meta["file"]["fileInfos"] if f["fileName"] == CAFE_NAME)
-    raw = _open(op, f"https://jejudatahub.net/api/file?id={fi['id']}&fileId={fi['fileId']}")
+    why = ""
+    try:
+        raw = _cafe_bytes(op, *CAFE_FILE_IDS)
+    except Exception as e:
+        why = f"직접 받기 {type(e).__name__}: {str(e)[:100]}"
+        try:
+            meta = json.loads(_open(op, "https://jejudatahub.net/api/data/view?id=1306", tries=TRIES))
+            fi = next(f for f in meta["file"]["fileInfos"] if f["fileName"] == CAFE_NAME)
+            raw = _cafe_bytes(op, fi["id"], fi["fileId"])
+        except Exception as e2:
+            raise RuntimeError(f"{why} / 상세 조회 {type(e2).__name__}: {str(e2)[:100]}") from e2
     out.mkdir(parents=True, exist_ok=True)
     (out / CAFE_NAME).write_bytes(raw)
     return f"{CAFE_NAME} ({len(raw):,} bytes)"

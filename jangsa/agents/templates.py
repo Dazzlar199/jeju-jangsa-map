@@ -256,15 +256,26 @@ REAL_STEP_FILE = {
     "real_cafe_density": "서귀포시 휴게음식점 현황(제주데이터허브 1306)",
     "real_bus_stops": "제주 버스정류소 현황(공공데이터포털 15010850)",
 }
+REAL_STEP_FETCH_KEY = {"real_tour_time": "bc", "real_tour_dow": "bc", "real_cafe_density": "cafe"}   # scripts/fetch_public_data.py 의 JOBS 키
 FETCH_HINT = "받는 법: 터미널에서 `python scripts/fetch_public_data.py` 를 실행하거나 README 의 '공개 데이터 받기'를 보세요"
 
 
 def missing_real_notes(intent: str, c: Ctx, available: list[str]) -> list[str]:
-    """이번 질문에 쓰일 [실데이터] 단계 중 파일이 없어 빠진 것을 안내 문장으로 돌려준다(조용히 사라지지 않게)."""
+    """이번 질문에 쓰일 공개 실데이터 단계 중 파일이 없어 빠진 것을 안내 문장으로 돌려준다(조용히 사라지지 않게).
+
+    건너뛴 단계에는 "[실데이터]" 표시를 붙이지 않는다(그 표시는 실제로 돌아간 단계의 해설에만 쓴다).
+    Cloud 데모가 자동으로 받다가 실패했으면 그 사유를 함께 알린다.
+    """
+    from .. import fetch_public
     out = []
     for sid in INTENT_STEPS[intent]:
         if sid in REAL_STEPS and applicable(sid, c) and any(t not in available for t in STEP_TABLES[sid]):
-            out.append(f"[실데이터] {REAL_STEP_FILE[sid]} 단계는 건너뛰었습니다: 파일 없음 — {FETCH_HINT}.")
+            why = fetch_public.failure_reason(REAL_STEP_FETCH_KEY.get(sid, ""))
+            if why is not None:
+                out.append(f"공개 실데이터 '{REAL_STEP_FILE[sid]}' 단계는 건너뛰었습니다: 공개 주소에서 자동으로 받지 못했습니다({why}). "
+                           "잠시 뒤 새로 고치면 다시 받아 봅니다. 가상 데이터 단계만 보여 드립니다.")
+            else:
+                out.append(f"공개 실데이터 '{REAL_STEP_FILE[sid]}' 단계는 건너뛰었습니다: 파일 없음 — {FETCH_HINT}.")
     return out
 
 

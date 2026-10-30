@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import shutil
+import time
 from pathlib import Path
 
 import pandas as pd
@@ -10,7 +11,7 @@ import streamlit as st
 from jangsa.agents.explainer import explainer_messages
 from jangsa.agents.planner import PLANNER_SYSTEM, build_plan, planner_messages
 from jangsa.agents.rules import INTENTS, parse_question
-from jangsa.config import ATTRIBUTION, DEMO, REPORTS_DIR, SYNTHETIC_NOTICE, llm_config
+from jangsa.config import ATTRIBUTION, DATA_PUBLIC, DEMO, REPORTS_DIR, SYNTHETIC_NOTICE, llm_config
 from jangsa.fmt import INTENT_KO, ORIGIN_KO, pretty_df
 from jangsa.llm import LLMError, estimate_tokens, load_local_env, make_provider
 from jangsa.pipeline import AnalysisResult, display_numbers, display_path, run_plan
@@ -49,18 +50,41 @@ st.markdown("""
 
 
 # ── 상태 ────────────────────────────────────────────────────────────────
+RETRY_FETCH_SECS = 300    # 받기에 실패한 파일은 이 시간이 지난 뒤 새 접속에서 한 번 더 받아 본다
+
+
 @st.cache_resource(show_spinner=False)
-def _download_public():
-    """Cloud 데모만: 저장소에 없는 공개 파일을 첫 실행 때 받는다(서버가 켜져 있는 동안 한 번). 실패하면 기존 '파일 없음' 안내."""
+def _fetch_state() -> dict:
+    return {"res": None, "t": 0.0}
+
+
+def _download_public() -> dict:
+    """Cloud 데모만: 저장소에 없는 공개 파일을 받는다. 성공은 서버가 켜져 있는 동안 다시 받지 않고,
+    실패(일시적 네트워크 오류 포함)는 결과를 굳히지 않고 5분 뒤 새 접속에서 다시 받아 본다. 계속 실패하면 사유와 함께 '파일 없음' 안내."""
     from jangsa.fetch_public import fetch_missing
-    return fetch_missing()
+    stt = _fetch_state()
+    failed = stt["res"] is not None and any(str(v).startswith("실패") for v in stt["res"].values())
+    if stt["res"] is None or (failed and time.time() - stt["t"] > RETRY_FETCH_SECS):
+        stt["res"], stt["t"] = fetch_missing(), time.time()
+    return stt["res"]
 
 
 @st.cache_resource(show_spinner=False)
+def _synthetic_frames():
+    return read_synthetic(include_my_store=False)
+
+
+@st.cache_resource(show_spinner=False)
+def _public_frames(_sig: str):
+    """_sig(data/public 안 CSV 개수)가 바뀌면, 즉 늦게라도 파일을 받았으면 공개 표를 다시 읽는다."""
+    return read_public()
+
+
 def _base_frames():
     if DEMO:
         _download_public()
-    return read_synthetic(include_my_store=False), read_public()
+    sig = str(sum(1 for _ in DATA_PUBLIC.rglob("*.csv")))
+    return _synthetic_frames(), _public_frames(sig)
 
 
 def _new_store() -> DataStore:
@@ -325,7 +349,7 @@ if res is not None:
                 if dd is not None and all(c in dd.columns for c in [spec.x] + spec.y):
                     st.download_button("그래프를 PNG 로 저장", to_png(spec, dd), file_name=f"{sr.step.id}.png", mime="image/png", key=f"png_{sr.step.id}")
     for sr in res.steps:
-        if sr.skipped.startswith("[실데이터]"):
+        if sr.skipped.startswith("공개 실데이터"):
             st.info(f"{sr.step.title}\n\n{sr.skipped}")
     st.markdown("**한계**")
     for l in ex.limits:

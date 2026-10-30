@@ -66,7 +66,7 @@ def execute_step(step: StepPlan, store: DataStore, provider: Provider, log: RunL
     if missing:
         pub = [t for t in missing if t in TABLES and TABLES[t].public_glob]
         if pub:
-            return StepResult(step=step, skipped="[실데이터] 파일 없음 — 받는 법: `python scripts/fetch_public_data.py` (README '공개 데이터 받기'): " + ", ".join(pub))
+            return StepResult(step=step, skipped="공개 실데이터 파일 없음 — 받는 법: `python scripts/fetch_public_data.py` (README '공개 데이터 받기'): " + ", ".join(pub))
         return StepResult(step=step, skipped="필요한 CSV 가 아직 없습니다: " + ", ".join(missing))
     row_counts = {t: i.rows for t, i in store.tables.items()}
     allowed = store.available()
