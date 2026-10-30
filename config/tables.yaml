@@ -1,0 +1,333 @@
+# ─────────────────────────────────────────────────────────────────────────
+# 표 명세(스키마) 한 곳. 근거: docs/data-spec.md (제주데이터허브 데이터명세서 v12 + 반출 기준 PDF 2026.09.01).
+# - 센터 CSV 의 열 이름(base_year_month, bjd, biz_nm, use_amt ...)을 aliases 에 그대로 적었다.
+# - columns = 분석에 쓰는 정리된 열(DuckDB 표). raw_columns 가 있으면 CSV 를 그 열로 읽고 정리 규칙으로 columns 로 바꾼다.
+# - 센터 표는 성별·연령·이용자구분 같은 열이 더 있다. 앱은 읽을 때 그 열들을 합산한다(열 이름이 달라도 aliases 로 맞춘다).
+# - export_level: restricted(원본·발췌 불가, 단순집계 10 미만 불가) | open(반출 가능 표·공개 실데이터) | user(내 자료)
+# ─────────────────────────────────────────────────────────────────────────
+tables:
+  card_emd:
+    center_no: "1-08"
+    center_name: "카드 이용 현황(읍면동)_v02"
+    provider: 비씨카드
+    export_level: restricted
+    title: 읍면동·업종별 월 카드 이용
+    grain: 월 × 읍면동 × 업종
+    synthetic_file: 가상_카드이용_읍면동.csv
+    filter_hint: "기간 최근 24개월, 법정동 전체, 업종 {industry}(업종코드 {biz_code}) — 이용자구분·성별·연령대는 전체"
+    columns:
+      ym:        {type: ym,     required: true, desc: 기준 연월, aliases: [base_year_month, 년월, 기준년월, 기준연월, 연월, 기준월, ym]}
+      emd:       {type: emd,    required: true, desc: 읍면동 이름(센터는 법정동 bjd), aliases: [bjd, 법정동, emd_nm, 행정동명, 행정동, 읍면동, 읍면동명, emd]}
+      industry:  {type: text,   required: true, desc: 업종, aliases: [biz_nm, 업종명, 업종, 업종대분류, industry]}
+      sales_amt: {type: number, required: true, desc: 이용 금액(원), aliases: [use_amt, 이용금액, 매출액, 결제금액, sales_amt]}
+      sales_cnt: {type: number, required: true, desc: 이용 건수, aliases: [use_cnt, 이용건수, 결제건수, 거래건수, sales_cnt]}
+      user_cnt:  {type: number, required: false, desc: 이용자 수, aliases: [user_cnt, 이용자수, 이용고객수, 고객수]}
+  card_time:
+    center_no: "1-14"
+    center_name: "카드 이용 현황(시간대)_v02"
+    provider: 비씨카드
+    export_level: restricted
+    title: 읍면동·업종·시간대별 월 카드 이용
+    grain: 월 × 읍면동 × 업종 × 시간대(오전·점심·오후·저녁·밤)
+    synthetic_file: 가상_카드이용_시간대.csv
+    filter_hint: "기간 최근 12개월, 법정동 전체 또는 {emd}, 업종 {industry}(업종코드 {biz_code})"
+    columns:
+      ym:        {type: ym,     required: true, desc: 기준 연월, aliases: [base_year_month, 년월, 기준년월, 기준연월, 연월, ym]}
+      emd:       {type: emd,    required: true, desc: 읍면동 이름(센터는 법정동 bjd), aliases: [bjd, 법정동, emd_nm, 행정동명, 읍면동, emd]}
+      industry:  {type: text,   required: true, desc: 업종, aliases: [biz_nm, 업종명, 업종, industry]}
+      time_band: {type: text,   required: true, desc: "시간대(오전 07-11시, 점심 11-14시, 오후 14-18시, 저녁 18-22시, 밤 22-07시)", aliases: [time, 시간대, 시간대구분, time_band]}
+      sales_amt: {type: number, required: true, desc: 이용 금액(원), aliases: [use_amt, 이용금액, 매출액, sales_amt]}
+      sales_cnt: {type: number, required: true, desc: 이용 건수, aliases: [use_cnt, 이용건수, 거래건수, sales_cnt]}
+  card_dow:
+    center_no: "1-12"
+    center_name: "카드 이용 현황(요일별)_v02"
+    provider: 비씨카드
+    export_level: restricted
+    title: 읍면동·업종·요일별 월 카드 이용
+    grain: 월 × 읍면동 × 업종 × 요일(월~일·공휴일)
+    synthetic_file: 가상_카드이용_요일별.csv
+    filter_hint: "기간 최근 12개월, 법정동 전체 또는 {emd}, 업종 {industry}(업종코드 {biz_code})"
+    columns:
+      ym:        {type: ym,     required: true, desc: 기준 연월, aliases: [base_year_month, 년월, 기준년월, 기준연월, 연월, ym]}
+      emd:       {type: emd,    required: true, desc: 읍면동 이름(센터는 법정동 bjd), aliases: [bjd, 법정동, emd_nm, 행정동명, 읍면동, emd]}
+      industry:  {type: text,   required: true, desc: 업종, aliases: [biz_nm, 업종명, 업종, industry]}
+      dow:       {type: text,   required: true, desc: 요일(월~일, 공휴일), aliases: [week, 요일구분, 요일, dow]}
+      sales_amt: {type: number, required: true, desc: 이용 금액(원), aliases: [use_amt, 이용금액, 매출액, sales_amt]}
+      sales_cnt: {type: number, required: true, desc: 이용 건수, aliases: [use_cnt, 이용건수, 거래건수, sales_cnt]}
+  store_count:
+    center_no: "1-17"
+    center_name: "제주도 내 업종별 매장 수"
+    provider: 비씨카드
+    export_level: restricted
+    title: 시군구·업종별 월 매장 수(읍면동 단위 아님)
+    grain: 월 × 시군구 × 업종
+    synthetic_file: 가상_업종별_매장수.csv
+    filter_hint: "기간 최근 24개월, 시군구 전체, 업종 {industry}(업종코드 {biz_code}) — 매장주 구분은 전체"
+    columns:
+      ym:        {type: ym,     required: true, desc: 기준 연월, aliases: [base_year_month, 년월, 기준년월, 기준연월, 연월, ym]}
+      city:      {type: text,   required: true, desc: 시군구(제주시·서귀포시), aliases: [city, 시군구]}
+      industry:  {type: text,   required: true, desc: 업종, aliases: [biz_nm, 업종명, 업종, industry]}
+      store_cnt: {type: number, required: true, desc: 매장 수, aliases: [store_cnt, 매장수, 가맹점수, 점포수]}
+  store_emd:
+    center_no: "-"
+    center_name: "읍면동·업종별 매장 수(직접 만든 집계 CSV, 센터 표에는 없음)"
+    provider: 이용자
+    export_level: restricted
+    title: 읍면동·업종별 매장 수(스냅샷)
+    grain: 읍면동 × 업종
+    synthetic_file: 가상_읍면동별_매장수.csv
+    filter_hint: "센터 1-17 은 시군구 단위라 읍면동별 매장 수가 없습니다. 센터 안에서 다른 표로 만든 읍면동·업종별 매장 수 집계가 있을 때만 올리세요(없어도 분석은 됩니다)"
+    columns:
+      emd:       {type: emd,    required: true, desc: 읍면동 이름, aliases: [emd, 읍면동, 읍면동명, 행정동명, bjd, 법정동]}
+      industry:  {type: text,   required: true, desc: 업종, aliases: [industry, 업종, 업종명, biz_nm]}
+      store_cnt: {type: number, required: true, desc: 매장 수, aliases: [store_cnt, 매장수, 점포수]}
+  pop_flow:
+    center_no: "4-11"
+    center_name: "내국인 유동인구(읍면동)_v02"
+    provider: SKT
+    export_level: restricted
+    title: 읍면동별 월 평균 유동인구(거주+근무+방문, 시간당 명)
+    grain: 월 × 읍면동 × 평일/주말
+    synthetic_file: 가상_유동인구_읍면동.csv
+    filter_hint: "기간 최근 12개월, 행정동 전체 — 성별·연령대는 전체, 날짜·시간 열 포함(앱이 읍면동·월·평일/주말 평균으로 정리)"
+    raw_columns:
+      date:          {type: date,   required: true, desc: 날짜(YYYYMMDD), aliases: [base_date, 날짜, 기준일자, date]}
+      hour:          {type: number, required: false, desc: 시간(1~24), aliases: [time, 시간, hour]}
+      emd:           {type: emd,    required: true, desc: 행정동명, aliases: [emd_nm, 행정동명, 읍면동, emd]}
+      resd_pop_cnt:  {type: number, required: false, desc: 거주인구, aliases: [resd_pop_cnt, 거주인구]}
+      work_pop_cnt:  {type: number, required: false, desc: 근무인구, aliases: [work_pop_cnt, 근무인구]}
+      visit_pop_cnt: {type: number, required: true, desc: 방문인구, aliases: [visit_pop_cnt, 방문인구]}
+    columns:
+      ym:       {type: ym,     required: true, desc: 기준 연월, aliases: [ym]}
+      emd:      {type: emd,    required: true, desc: 읍면동 이름, aliases: [emd]}
+      day_type: {type: text,   required: true, desc: 평일/주말, aliases: [day_type]}
+      pop_cnt:  {type: number, required: true, desc: 시간당 평균 유동인구(명; 거주+근무+방문), aliases: [pop_cnt]}
+  closure:
+    center_no: "2-08"
+    center_name: "휴폐업(센터 안에서 읍면동·업종·월별로 집계한 CSV)"
+    provider: 한국기업데이터
+    export_level: restricted
+    title: 읍면동·업종별 월 개업·폐업 수
+    grain: 월 × 읍면동 × 업종
+    synthetic_file: 가상_휴폐업.csv
+    filter_hint: "2-08 원본은 기업 한 곳당 한 행(사업자번호·기업명 포함)이라 그대로 올릴 수 없습니다. 센터 안에서 읍면동·업종·월별 개업·폐업 수로 집계한 CSV 만 올리세요(없어도 분석은 됩니다)"
+    columns:
+      ym:        {type: ym,     required: true, desc: 기준 연월, aliases: [base_year_month, 년월, 기준년월, ym]}
+      emd:       {type: emd,    required: true, desc: 읍면동 이름, aliases: [emd, 읍면동, 읍면동명, bjd, 법정동]}
+      industry:  {type: text,   required: true, desc: 업종, aliases: [industry, 업종, 업종명, biz_nm]}
+      open_cnt:  {type: number, required: true, desc: 개업 수, aliases: [open_cnt, 개업수, 신규수]}
+      close_cnt: {type: number, required: true, desc: 폐업 수, aliases: [close_cnt, 폐업수, 폐업건수]}
+  weather_daily:
+    center_no: "5-02"
+    center_name: "일일 날씨 정보"
+    provider: 제주특별자치도
+    export_level: open
+    title: 일별 평균기온·강수량(관측소 평균)
+    grain: 일
+    agg: mean
+    synthetic_file: 가상_일일날씨.csv
+    filter_hint: "기간 최근 24개월, 관측소 전체"
+    raw_columns:
+      date:     {type: date,   required: true, desc: 날짜, aliases: [base_date, 날짜, 측정일자, date]}
+      avg_temp: {type: number, required: true, desc: 평균 기온(℃), aliases: [average_temperature, 평균기온, avg_temp]}
+      rain_mm:  {type: number, required: true, desc: 일강수량(mm), aliases: [daily_rainfall, 일강수량, 강수량, rain_mm]}
+    columns:
+      date:     {type: date,   required: true, desc: 날짜, aliases: [date]}
+      avg_temp: {type: number, required: true, desc: 평균 기온(℃), aliases: [avg_temp]}
+      rain_mm:  {type: number, required: true, desc: 일강수량(mm), aliases: [rain_mm]}
+  my_store:
+    center_no: "-"
+    center_name: "내 가게 월 매출(이용자 반입 CSV)"
+    provider: 이용자
+    export_level: user
+    title: 내 가게 월 매출
+    grain: 월
+    synthetic_file: 가상_내가게_월매출.csv
+    filter_hint: "내 가게 월별 매출 합계(원) 두 열: 연월, 매출"
+    columns:
+      ym:        {type: ym,     required: true, desc: 매출 연월, aliases: [기준년월, 기준연월, 년월, 연월, 월, 기준월, ym]}
+      sales_amt: {type: number, required: true, desc: 월 매출 합계(원), aliases: [매출, 매출액, 매출합계, 월매출, 월매출액, sales_amt]}
+  # ── 공개 실데이터(data/public/, 앱이 전용 읽기 코드로 정리해 올림) ──────────────
+  cafe_license:
+    center_no: "-"
+    center_name: "서귀포시 휴게음식점 현황(2023-03-31, 공개 실데이터)"
+    provider: 제주특별자치도 서귀포시
+    export_level: open
+    title: 서귀포시 읍면동·업종별 휴게음식점 수(업소명으로 분류, 2023-03 기준)
+    grain: 읍면동 × 업종
+    public_glob: "*휴게음식점*.csv"
+    synthetic_file: ""
+    columns:
+      emd:       {type: emd,    required: true, desc: 읍면동 이름(주소에서 추출), aliases: [emd]}
+      industry:  {type: text,   required: true, desc: 업종(업소명으로 분류), aliases: [industry]}
+      store_cnt: {type: number, required: true, desc: 업소 수, aliases: [store_cnt]}
+  bc_tour_time:
+    center_no: "-"
+    center_name: "BC카드 개별관광(FIT) 지역별 시간대 이용금액(2014-09~2016-08, 공개 실데이터)"
+    provider: 제주특별자치도·BC카드
+    export_level: open
+    title: 권역(북부·남부·동부·서부)별 관광객 시간대별 카드 이용금액
+    grain: 권역 × 시간대
+    public_glob: "*시간대별분석_이용금액_*.csv"
+    synthetic_file: ""
+    columns:
+      region:    {type: text,   required: true, desc: 권역(북부·남부·동부·서부), aliases: [region]}
+      time_band: {type: text,   required: true, desc: 시간대(오전·점심·오후·저녁·밤), aliases: [time_band]}
+      sales_amt: {type: number, required: true, desc: 2차년도(2015-09~2016-08) 이용금액(원), aliases: [sales_amt]}
+  bc_tour_dow:
+    center_no: "-"
+    center_name: "BC카드 개별관광(FIT) 지역별 요일별 내국인 이용금액(공개 실데이터)"
+    provider: 제주특별자치도·BC카드
+    export_level: open
+    title: 권역별 관광객(내국인) 요일별 카드 이용금액
+    grain: 권역 × 요일
+    public_glob: "*요일별분석_내국인이용금액_2*.csv"
+    synthetic_file: ""
+    columns:
+      region:    {type: text,   required: true, desc: 권역, aliases: [region]}
+      dow:       {type: text,   required: true, desc: 요일, aliases: [dow]}
+      sales_amt: {type: number, required: true, desc: 2차년도 이용금액(원), aliases: [sales_amt]}
+  resident_hourly:
+    center_no: "-"
+    center_name: "제주도민 시간대별 지번(PNU) 단위 유동인구(2015-11, 공개 실데이터)"
+    provider: 제주특별자치도
+    export_level: open
+    title: 읍면동별 도민 유동인구 시간대 구성(지번 표본 평균)
+    grain: 읍면동 × 시간대
+    public_glob: "*시간대별_제주도민_지번*.csv"
+    synthetic_file: ""
+    columns:
+      emd:       {type: emd,    required: true, desc: 읍면동 이름(지번 위치에서 추출), aliases: [emd]}
+      time_band: {type: text,   required: true, desc: 시간대(오전·점심·오후·저녁·밤), aliases: [time_band]}
+      pop_avg:   {type: number, required: true, desc: 지번 한 곳당 시간대 평균 유동인구, aliases: [pop_avg]}
+      lot_cnt:   {type: number, required: true, desc: 표본 지번 수, aliases: [lot_cnt]}
+  bus_stops:
+    center_no: "-"
+    center_name: "제주특별자치도 버스정류소 현황(2022-11-01, 공개 실데이터)"
+    provider: 제주특별자치도
+    export_level: open
+    title: 버스 정류소 목록(정류소명·주변설명)
+    grain: 정류소
+    public_glob: "*버스정류소현황*.csv"
+    synthetic_file: ""
+    columns:
+      stop_id:    {type: text, required: true, desc: 정류소 아이디(공공데이터포털 9자리, 센터 3-03 의 7자리와 다름), aliases: [stop_id]}
+      stop_name:  {type: text, required: true, desc: 정류소명, aliases: [stop_name]}
+      place_desc: {type: text, required: false, desc: 위치정보(주변설명), aliases: [place_desc]}
+
+# 코드값
+codes:
+  # 센터 카드 표(1-08 [참고2])의 42개 업종 중 이 앱이 다루는 것. codes=업종코드, words=질문·CSV 에서 알아보는 낱말
+  industries:
+    카페:     {codes: [I56220], words: [카페, 커피, 커피숍, 커피전문점, 비알콜음료점업, 비알코올음료점업, 음료점, 디저트카페]}
+    한식:     {codes: [I56111], words: [한식, 한식집, 밥집, 백반, 고깃집, 국밥, 흑돼지]}
+    중식:     {codes: [I56112], words: [중식, 중국집, 짜장, 짬뽕]}
+    일식:     {codes: [I56113], words: [일식, 일식집, 초밥, 스시, 돈까스, 라멘]}
+    양식:     {codes: [I56114], words: [양식, 서양식, 레스토랑, 파스타]}
+    간이음식: {codes: [I56192], words: [간이음식, 피자, 햄버거, 샌드위치, 패스트푸드]}
+    주점:     {codes: [I56211, I56219], words: [주점, 술집, 호프, 이자카야, 포차, 와인바, 유흥주점]}
+    편의점:   {codes: [G47122], words: [편의점, 체인화편의점]}
+    베이커리: {codes: [G47215], words: [베이커리, 빵집, 제과, 제과점, 빵및과자류소매업]}
+  # 센터 카드 표 업종에 없어서 따로 안내해야 하는 말(치킨집·분식집은 센터 업종코드 42개에 따로 없음)
+  unsupported_industry_words: [치킨, 닭강정, 분식, 떡볶이, 김밥]
+  time_bands: [오전, 점심, 오후, 저녁, 밤]
+  time_band_hours: {오전: "07-11시", 점심: "11-14시", 오후: "14-18시", 저녁: "18-22시", 밤: "22-07시"}
+  dow: [월, 화, 수, 목, 금, 토, 일, 공휴일]
+  day_types: [평일, 주말]
+  # BC카드 권역(개요 파일): 동 지역은 시 기준으로 북부·남부, 읍면은 아래 목록
+  bc_regions: {북부: [애월읍, 조천읍, 추자면], 남부: [안덕면, 남원읍], 동부: [구좌읍, 우도면, 성산읍, 표선면], 서부: [한경면, 한림읍, 대정읍]}
+  # 센터 카드 표의 법정동(bjd) → 행정동(분석 단위). 초안: 이름이 같은 곳은 적지 않았고, 확신 못 하는 곳은 뺐다(센터 확인 필요)
+  legal_to_admin:
+    일도일동: 일도1동
+    일도이동: 일도2동
+    이도일동: 이도1동
+    이도이동: 이도2동
+    삼도일동: 삼도1동
+    삼도이동: 삼도2동
+    용담일동: 용담1동
+    용담이동: 용담2동
+    화북일동: 화북동
+    화북이동: 화북동
+    도련일동: 화북동
+    도련이동: 화북동
+    삼양일동: 삼양동
+    삼양이동: 삼양동
+    삼양삼동: 삼양동
+    아라일동: 아라동
+    아라이동: 아라동
+    오라일동: 오라동
+    오라이동: 오라동
+    오라삼동: 오라동
+    외도일동: 외도동
+    외도이동: 외도동
+    이호일동: 이호동
+    이호이동: 이호동
+    도두일동: 도두동
+    도두이동: 도두동
+    법환동: 대륜동
+    서호동: 대륜동
+    강정동: 대천동
+    도순동: 대천동
+    신효동: 효돈동
+    상효동: 효돈동
+    하효동: 효돈동
+    색달동: 중문동
+    대포동: 중문동
+    상예동: 예래동
+    하예동: 예래동
+    호근동: 서홍동
+  # 가상 데이터 전용: 7개 권역(dstrct_se) 임의 배정
+  dstrct_se:
+    제주시 동부: [구좌읍, 조천읍, 우도면, 삼양동, 화북동, 봉개동]
+    제주시 중부(동): [일도1동, 일도2동, 이도1동, 이도2동, 삼도1동, 삼도2동, 용담1동, 용담2동, 건입동, 아라동]
+    제주시 중부(서): [연동, 노형동, 오라동, 외도동, 이호동, 도두동]
+    제주시 서부: [한림읍, 애월읍, 한경면, 추자면]
+    서귀포시 동부: [성산읍, 표선면, 남원읍, 효돈동]
+    서귀포시 중부: [송산동, 정방동, 중앙동, 천지동, 영천동, 동홍동, 서홍동, 대륜동]
+    서귀포시 서부: [대정읍, 안덕면, 대천동, 중문동, 예래동]
+  emd:    # 제주시 26, 서귀포시 17 = 43개 읍면동 (type: tour 관광지, urban 도심, rural 농어촌)
+    제주시:
+      한림읍: {type: tour,  size: 3}
+      애월읍: {type: tour,  size: 5}
+      구좌읍: {type: tour,  size: 3}
+      조천읍: {type: tour,  size: 3}
+      한경면: {type: rural, size: 2}
+      추자면: {type: rural, size: 1}
+      우도면: {type: tour,  size: 1}
+      일도1동: {type: urban, size: 2}
+      일도2동: {type: urban, size: 5}
+      이도1동: {type: urban, size: 2}
+      이도2동: {type: urban, size: 6}
+      삼도1동: {type: urban, size: 3}
+      삼도2동: {type: urban, size: 3}
+      용담1동: {type: urban, size: 2}
+      용담2동: {type: urban, size: 3}
+      건입동: {type: urban, size: 3}
+      화북동: {type: urban, size: 4}
+      삼양동: {type: urban, size: 4}
+      봉개동: {type: rural, size: 2}
+      아라동: {type: urban, size: 5}
+      오라동: {type: urban, size: 3}
+      연동: {type: urban, size: 8}
+      노형동: {type: urban, size: 9}
+      외도동: {type: urban, size: 4}
+      이호동: {type: tour,  size: 3}
+      도두동: {type: tour,  size: 2}
+    서귀포시:
+      대정읍: {type: rural, size: 3}
+      남원읍: {type: tour,  size: 3}
+      성산읍: {type: tour,  size: 4}
+      안덕면: {type: tour,  size: 3}
+      표선면: {type: tour,  size: 2}
+      송산동: {type: urban, size: 2}
+      정방동: {type: urban, size: 2}
+      중앙동: {type: urban, size: 3}
+      천지동: {type: urban, size: 2}
+      효돈동: {type: rural, size: 2}
+      영천동: {type: rural, size: 2}
+      동홍동: {type: urban, size: 5}
+      서홍동: {type: urban, size: 3}
+      대륜동: {type: urban, size: 3}
+      대천동: {type: urban, size: 3}
+      중문동: {type: tour,  size: 5}
+      예래동: {type: rural, size: 2}

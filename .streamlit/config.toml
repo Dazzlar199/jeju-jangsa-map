@@ -1,0 +1,17 @@
+# Streamlit 설정. 센터 PC(run.bat / run.sh)와 Streamlit Community Cloud 데모가 같이 읽는다.
+[browser]
+gatherUsageStats = false
+
+[server]
+# run.bat / run.sh 가 센터 PC 에서만 브라우저를 열어 준다(Cloud 는 알아서 headless 로 돈다)
+headless = false
+fileWatcherType = "none"
+# 데모(메모리 1GB)를 지키려고 기본 50MB. 센터 PC 는 run.bat / run.sh 가 --server.maxUploadSize 200 으로 넓힌다.
+maxUploadSize = 50
+
+[theme]
+base = "light"
+primaryColor = "#2F6DB5"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F1F5F9"
+textColor = "#1B2733"

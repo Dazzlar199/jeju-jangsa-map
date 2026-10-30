@@ -1,0 +1,50 @@
+# 반출 기준 검사기(export_gate) 규칙. 기준값은 모두 이 파일에서만 바꾼다.
+# 근거: "제주빅데이터센터 데이터 반출 정책"(제정 2020.08.31, 개정 2026.09.01) — docs/src/ 의 PDF.
+#  - 원본·발췌: 원본 제공이 불가한 데이터는 반출 불가(제공 단위의 총합·평균도 불가가 원칙)
+#  - 단순집계(합계·평균·최솟값·최댓값·중앙값): 10 미만 수치 불포함 시 반출 가능.
+#    처리방법 1 범주처리, 2 삭제처리, 3 비식별처리(같은 값 처리)
+#  - 응용집계(차액·지수·비율·순위·범주·회귀분석): 수치 포함 반출 가능
+#  - 시각화: 그림파일(png, jpg)만. 벡터(SVG·HTML)는 캡처한 그림으로만.
+#  - 원칙적으로 csv·txt·스프레드시트 반출 불가(비씨카드·SKT·KT 등 제공처별 기준)
+#  - 소스코드·로그에 데이터 샘플 출력(head 등)을 넣으면 반출 불가
+# 여기서 구현한 해석은 센터 담당자 확인 전의 초안이다(docs/data-usage.md).
+version: "2026-09-01 개정 기준 초안"
+# ── 문서 안 충돌(반출 기준 PDF 4쪽 vs 10쪽) ── 센터 질의 필요 ──
+#  4쪽: "원본 제공이 불가한 데이터는 제공단위(블록·집계구·동·구 등)의 총합·평균 등 통계처리 데이터도 반출 불가가 원칙"
+# 10쪽: "단순집계(합계·평균·최솟값·최댓값·중앙값)는 10 미만 수치를 포함하지 않으면 반출 가능, 응용집계는 수치 포함 반출 가능"
+# strict_mode=true(기본): 4쪽을 우선한다. 원본 불가 표(restricted)에서 나온 결과 중 단순집계 열(합계·평균·건수)은
+#   화면(센터 안)에서만 보여 주고, LLM 전송·보고서·PNG 반출용 표에서는 뺀다. 응용집계(지수·비율·순위)만 나간다.
+# strict_mode=false: 10쪽을 따른다. 10 미만을 가린 단순집계도 함께 나간다.
+strict_mode: true
+suppress_levels: [restricted, user]   # 10 미만 억제·근거 건수 확인을 적용하는 표 종류(open 은 반출 가능 표라 제외)
+min_count: 10                 # 단순집계 10 미만 불가
+small_cell_method: delete     # delete(삭제처리) | category(범주처리: "10 미만") | mask(비식별: 같은 값)
+mask_value: 0                 # small_cell_method=mask 일 때 모두 이 값으로 바꿈
+applied_min_support: 3        # [자체 강화] 응용집계(비율 등)도 근거가 3곳·3건 미만이면 가림(특정 가게 식별 방지)
+max_result_rows: 200          # 한 번에 반출 가능한 표 최대 행 수
+raw_row_ratio_limit: 0.6      # 결과 행 수가 원천 표 행 수의 이 비율을 넘으면 '원본 일부 추출'로 보고 차단
+llm_max_rows_per_table: 60    # 해설 LLM 에 보내는 표 한 개 최대 행 수
+blocked_column_patterns:      # 이 이름의 결과 열은 차단(개별 식별·세부 위치). 정규식이며 열 이름 전체나 낱말에 맞춘다
+  - '격자'
+  - '^grid'
+  - '^lat(itude)?$'
+  - '^lon(g|gitude)?$'
+  - '^(경도|위도|좌표)$'
+  - '^card_no$'
+  - '카드번호'
+  - '^store_id$'
+  - '^(biz_num|kedcd|ent_nm)$'
+  - '사업자'
+  - '가맹점명'
+# 결과 열 이름 → 종류 판정(앞에서부터 처음 맞는 것). count=근거 건수·인원(단순집계 중 개수형), applied=응용집계
+column_kinds:
+  count:   ['^n_rows$', '_cnt$', '_count$', '^riders$', '_pop$', '^pop_', '_riders$']
+  applied: ['_rate$', '_ratio$', '_idx$', '_index$', '_share$', '_pct$', 'rank', '_per_', '^per_', '_diff$', '_gap$', 'percentile', '_score$', '_growth$']
+# 근거 집단 크기를 나타내는 개수 열(이 열이 10 미만이면 그 행의 단순집계 전체를 가린다).
+# 그 밖의 개수 열(개업 수·폐업 수 등)은 값 하나하나가 10 미만일 때 그 칸만 가린다.
+group_size_columns: ['n_rows', 'store_cnt', 'avg_store_cnt', 'sales_cnt', 'user_cnt', 'avg_daily_pop', 'pop_cnt']
+# 표 단계별 허용 형식
+allowed_formats:
+  restricted: [png, report]      # csv·엑셀은 반출 불가(그림·분석결과보고서만)
+  open: [png, report, csv]
+  user: [png, report, csv]

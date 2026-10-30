@@ -1,0 +1,9 @@
+# 실행에 필요한 패키지 (센터 PC 사전 설치 목록용 고정 버전). Python 3.11 기준.
+streamlit==1.66.1
+duckdb==2.0.0
+pandas==3.1.0
+numpy==2.4.6
+plotly==7.1.0
+PyYAML==6.0.3
+pydantic==2.14.2
+matplotlib==3.11.2

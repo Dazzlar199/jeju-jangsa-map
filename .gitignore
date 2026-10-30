@@ -1,0 +1,31 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+runs/
+reports/
+.pytest_cache/
+.streamlit/secrets.toml
+*.log
+.DS_Store
+
+# 가상 데이터는 설치·첫 실행 때 scripts/make_synthetic.py(고정 시드)가 만든다
+data/synthetic/*
+!data/synthetic/.gitkeep
+
+# 공개 실데이터: 이용조건이 "이용허락범위 제한 없음"으로 확인된 파일만 저장소에 둔다(docs/data-usage.md).
+# 나머지(휴게음식점·BC카드 등)는 scripts/fetch_public_data.py 로 원래 공개 주소에서 받는다.
+data/public/*
+!data/public/.gitkeep
+!data/public/제주특별자치도_기상개황정보_20221231.csv
+!data/public/제주특별자치도_제주시내버스노선현황_20221231.csv
+!data/public/제주특별자치도_서귀포시내버스노선현황_20251231.csv
+!data/public/제주특별자치도_버스정류소현황_20221101.csv
+!data/public/제주특별자치도 서귀포시_음식점위생등급지정현황_20230412.csv
+!data/public/제주특별자치도_성연령별_제주도민_300그리드단위_유동인구_비율포함_20140630.csv
+!data/public/제주특별자치도_성연령별_제주도민_250셀단위_유동인구_비율포함_20151231.csv
+!data/public/250m격자기준좌표.csv
+!data/public/제주특별자치도_시간대별_제주도민_지번(PNU)단위_유동인구_비율포함_20151130.csv
+
+# 센터 명세서·반출 기준 PDF 사본: 재배포 조건 확인 전이라 공개 저장소에는 넣지 않는다(내려받는 주소는 docs/data-spec.md)
+docs/src/
